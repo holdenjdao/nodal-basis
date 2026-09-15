@@ -63,7 +63,9 @@ def test_pair(a: pd.Series, b: pd.Series, split: float = 0.7) -> dict:
     n = len(spread)
     cut = int(n * split)
     ins, oos = spread.iloc[:cut], spread.iloc[cut:]
-    adf_stat, adf_p, *_ = adfuller(ins.to_numpy(), autolag="AIC", result_object=False)
+    # fixed daily lag: hourly data, and AIC search over ~40 lags x 10k rows x
+    # thousands of pairs is the difference between minutes and an hour
+    adf_stat, adf_p, *_ = adfuller(ins.to_numpy(), maxlag=24, autolag=None, result_object=False)
     fit_in = ou_fit(ins)
     fit_out = ou_fit(oos) if len(oos) > 50 else {"half_life": np.nan, "theta": np.nan}
     std_in = float(ins.std())
@@ -95,9 +97,17 @@ def scan(
         if a not in basis.columns or b not in basis.columns:
             continue
         spread = (basis[a] - basis[b]).dropna()
-        if len(spread) < min_obs or spread.std() < min_spread_std:
+        if len(spread) < min_obs:
             continue
-        res = test_pair(basis[a], basis[b])
+        # filter on the in-sample window: two points on one bus can be identical
+        # for a year and diverge later, which is a constant series to ADF
+        ins_std = spread.iloc[: int(len(spread) * 0.7)].std()
+        if not np.isfinite(ins_std) or ins_std < min_spread_std:
+            continue
+        try:
+            res = test_pair(basis[a], basis[b])
+        except ValueError:
+            continue
         res.update({"a": a, "b": b})
         rows.append(res)
     table = pd.DataFrame(rows).set_index(["a", "b"])
