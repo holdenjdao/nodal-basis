@@ -19,7 +19,9 @@ def main() -> None:
     print(f"dart panel: {d.shape[0]} hours x {d.shape[1]} locations")
     print(f"range: {d.index.min()} .. {d.index.max()}")
 
-    table = dart.dart_table(d)
+    min_obs = max(120, int(0.7 * len(d)))
+    maxlags = min(48, len(d) // 4)
+    table = dart.dart_table(d, maxlags=maxlags, min_obs=min_obs)
     n_disc = int(table["discovery"].sum())
     print(f"\nnodes tested: {len(table)}   BH discoveries at 5% FDR: {n_disc}")
 
@@ -29,7 +31,7 @@ def main() -> None:
         print("\n=== strongest DA-cheap (DEC side) ===")
         print(table[table["mean_dart"] < 0].head(10).round(3))
 
-    persist = dart.split_persistence(d)
+    persist = dart.split_persistence(d, min_obs=max(40, len(d) // 4))
     print(f"\nfirst-half vs second-half rank correlation (Spearman): "
           f"{persist.attrs['spearman']:.3f}")
 

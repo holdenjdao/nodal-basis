@@ -61,6 +61,11 @@ def dart_table(
                 "p": p,
             }
         )
+    if not rows:
+        raise ValueError(
+            f"no location has >= {min_obs} aligned DA/RT hours; "
+            "lower min_obs or fetch more overlapping history"
+        )
     table = pd.DataFrame(rows).set_index("location")
     reject, p_bh, _, _ = multipletests(table["p"], alpha=fdr, method="fdr_bh")
     table["p_bh"] = p_bh

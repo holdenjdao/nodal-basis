@@ -116,9 +116,15 @@ def da_panel(location_types: list[str] | None = None) -> pd.DataFrame:
 
 
 def rt_hourly_panel(location_types: list[str] | None = None) -> pd.DataFrame:
-    """RT 15-min prices averaged to the hour, as a wide panel aligned with DA."""
+    """RT 15-min prices averaged to the hour, as a wide panel aligned with DA.
+
+    Hours with fewer than four 15-minute intervals are masked: a partial-day
+    fragment averaged into an "hourly" price would silently corrupt DART stats.
+    """
     df = load_rt()
     if location_types:
         df = df[df["location_type"].isin(location_types)]
     df = df.assign(hour=df["interval_start"].dt.floor("h"))
-    return df.pivot_table(index="hour", columns="location", values="price", aggfunc="mean")
+    grouped = df.groupby(["hour", "location"])["price"].agg(["mean", "count"])
+    complete = grouped.loc[grouped["count"] >= 4, "mean"]
+    return complete.unstack("location")
