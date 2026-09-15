@@ -149,6 +149,14 @@ Dated, so later readers know which regime each claim was made in.
     +5.4 winsorized, −7.4 raw. A handful of RT spike hours would have
     destroyed an INC there; the backtest settles on raw darts for exactly
     that reason.
+  - *Backtest, absolute DART (pre-registered: 30-day lookback, $2 entry,
+    $1 fee).* Net $0.60/MWh over 5.06M node-hours; Sharpe 0.34; hit rate
+    49% of days; max drawdown −$5.2M against +$3.0M total. January 2026
+    alone made +$5.7M — every other month nets to a loss — and 27% of
+    gross P&L came from the top 1% of hours. Sensitivity: lookback 60/90,
+    entry $4, or fee $2 all turn it negative; fee $0 gives +$8M. Verdict:
+    the forward premium is a risk premium collected by selling tail
+    insurance, fragile inside the cost band. Not an inefficiency.
 - **2026-09-14, one week of DA∩RT.** 113 nodes passed BH on the DART scan;
   split-sample persistence was −0.05. Congestion episodes, not structure.
 
