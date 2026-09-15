@@ -89,6 +89,38 @@ For a node `n`, over an analysis window:
    the structure has changed (new line, new asset). (`factors.py`)
 5. **Economics** — any signal surviving 1–4 is backtested net of costs.
 
+## Findings log
+
+Dated, so later readers know which regime each claim was made in.
+
+- **2026-09-15, 20 months of DA (Jan 2025 – Sep 2026), 959 full-coverage nodes.**
+  - *Raw-variance PCA is hijacked by tails.* One node (`PALACIOS_RN`, basis
+    std $274) captured two factors on its own, and half-year sub-fits
+    looked like a different grid each period. Winsorized + standardized PCA
+    instead recovers the West-export constraint as F1 and South-coastal
+    export as F2, with diffuse loadings — the physically sensible answer.
+    Honest five-factor explained variance: ~76%, not 85%.
+  - *The dominant constraint axis is stable; its intensity is not.* On the
+    standardized scale each half-year's F1 is the same West-export axis
+    (|corr| with full-sample F1 = 0.97, 0.97, 0.99). Its share of variance
+    rises 33% → 37% → 45% into 2026: West export congestion became more
+    dominant. Rolling refits are still required for the lower factors and
+    for new nodes, but the map's main road does not move.
+  - *Node statistics are tail-dominated.* Spike shares of 18–26% and basis
+    std of $60–75 at the extreme nodes (Russek, Junction, Appaloosa) mean
+    sample means are fragile; report robust (winsorized/median) statistics
+    alongside means everywhere. Extreme case: `PALACIOS_RN` has a median
+    basis of $1 and one hour at +$21,068 (price $22,618/MWh); that hour
+    alone contributes ~$170 of its $274 std. Its 143 hours above +$100
+    cluster in Jul 2025 and Nov 2025–Jan 2026: a coastal load pocket whose
+    local constraint binds in peak events.
+  - *Stationarity is not a finding.* 98% of neighbour-pair spreads pass ADF;
+    with a $3 minimum spread std and a reversion-yield ranking, ~425 remain
+    on the first window, led by battery-vs-hydro spreads in the Highland
+    Lakes pocket.
+- **2026-09-14, one week of DA∩RT.** 113 nodes passed BH on the DART scan;
+  split-sample persistence was −0.05. Congestion episodes, not structure.
+
 ## Limitations (known, accepted)
 
 - **Prices, not physics.** We infer constraints from prices. Shift factors,

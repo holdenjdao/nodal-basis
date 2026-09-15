@@ -42,17 +42,16 @@ def asset_type(location: str) -> str:
 
 
 def _factor_fit_stats(basis: pd.DataFrame, model: FactorModel) -> pd.DataFrame:
-    """Per-node R^2 of the factor reconstruction and residual std."""
-    cols = model.loadings.index
-    x = basis.loc[model.scores.index, cols]
-    x = x - x.mean()
-    fitted = model.scores.to_numpy() @ model.loadings.to_numpy().T
-    resid = x.to_numpy() - fitted
-    total_var = np.nanvar(x.to_numpy(), axis=0)
+    """Per-node R^2 of the factor reconstruction (on the model's transformed
+    scale) and residual std in $/MWh (rescaled back by the node's sigma)."""
+    z = model.transform(basis.loc[model.scores.index]).ffill().dropna()
+    resid = z.to_numpy() - model.reconstruct().loc[z.index].to_numpy()
+    total_var = np.nanvar(z.to_numpy(), axis=0)
     resid_var = np.nanvar(resid, axis=0)
     with np.errstate(divide="ignore", invalid="ignore"):
         r2 = np.where(total_var > 0, 1.0 - resid_var / total_var, np.nan)
-    return pd.DataFrame({"factor_r2": r2, "resid_std": np.sqrt(resid_var)}, index=cols)
+    resid_std_dollars = np.sqrt(resid_var) * model.sigma.loc[z.columns].to_numpy()
+    return pd.DataFrame({"factor_r2": r2, "resid_std": resid_std_dollars}, index=z.columns)
 
 
 def profile_table(
