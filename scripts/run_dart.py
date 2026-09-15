@@ -35,6 +35,15 @@ def main() -> None:
     print(f"\nfirst-half vs second-half rank correlation (Spearman): "
           f"{persist.attrs['spearman']:.3f}")
 
+    if len(d) > 24 * 60:
+        monthly = dart.monthly_persistence(d)
+        with pd.option_context("display.width", 120):
+            print("\n=== month-to-month persistence of the node premium cross-section ===")
+            print(monthly.round(3).to_string())
+            print(f"mean rho lag1: {monthly['rho_lag1'].mean():.3f}   lag2: {monthly['rho_lag2'].mean():.3f}"
+                  f"   lag3: {monthly['rho_lag3'].mean():.3f}")
+        monthly.to_csv(Path(__file__).resolve().parents[1] / "results" / "dart_monthly_persistence.csv")
+
     out = Path(__file__).resolve().parents[1] / "results"
     out.mkdir(exist_ok=True)
     table.to_csv(out / "dart.csv")
