@@ -40,6 +40,20 @@ Three testable forms, each a different mechanism:
 | spread reversion | two similarly-exposed nodes' spread departs from equilibrium and returns | cointegration + OU half-life on candidate pairs, walk-forward z-score | `pairs.py` |
 | factor dislocation | a node's price departs from what its factor exposure implies | residual z-scores vs the factor model, regime-break detection | `factors.py` + `nodes.py` |
 
+**Tradeability caveat for spreads.** All 24 hours of the day-ahead market
+clear simultaneously in one auction, so hour-to-hour reversion *within* a
+day's DA curve is a pattern, not a sequential trade. The tradeable versions
+of a spread signal are (a) day-over-day: yesterday's spread level vs today's
+clearing, and (b) DA-vs-RT: a spread that clears wide in DA and converges at
+RT settlement, executed as an INC at the rich node and a DEC at the cheap
+node. `backtest.py` frames spread strategies in those terms; the hourly OU
+half-lives in `pairs.py` characterise dynamics, they are not a trade.
+
+**Economic bar.** Stationarity is nearly free between neighbouring nodes
+(98% of tested pairs passed ADF on the first window). A pair matters only if
+the spread is large enough to clear costs *and* reverts fast: we rank by
+reversion yield = spread std / half-life, with a minimum spread std.
+
 A scan produces *candidates*. A candidate becomes a *finding* only after:
 1. multiple-testing control across everything scanned (BH FDR),
 2. persistence out of sample (the cross-section of premia must predict itself),
