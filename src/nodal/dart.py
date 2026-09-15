@@ -26,6 +26,22 @@ def dart_panel(da: pd.DataFrame, rt_hourly: pd.DataFrame) -> pd.DataFrame:
     return da.loc[idx, cols] - rt_hourly.loc[idx, cols]
 
 
+def hub_relative(dart: pd.DataFrame, hub: str = "HB_HUBAVG") -> pd.DataFrame:
+    """Node dart minus hub dart: the day-ahead mispricing of the *congestion*
+    component alone.
+
+    Day-ahead clears above real-time almost everywhere (the electricity
+    forward premium), so absolute darts are one market-wide fact wearing
+    960 node names. Subtracting the hub's dart isolates the locational part:
+    (DA_node - RT_node) - (DA_hub - RT_hub) = DA basis - RT basis. Traded as
+    an INC at the node against a DEC at the hub, it is immune to the
+    system-wide premium and to system-wide RT spikes.
+    """
+    if hub not in dart.columns:
+        raise KeyError(f"hub column {hub!r} not in dart panel")
+    return dart.sub(dart[hub], axis=0).drop(columns=[hub])
+
+
 def _hac_test(series: np.ndarray, maxlags: int) -> tuple[float, float, float]:
     """Mean, HAC t-stat, and p-value for H0: mean == 0."""
     model = sm.OLS(series, np.ones_like(series))

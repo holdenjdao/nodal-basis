@@ -119,12 +119,26 @@ def settle(
     return BacktestResult(pnl_hourly=pnl_hourly, pnl_daily=pnl_daily, positions=positions, stats=stats)
 
 
-def run_dart_backtest(dart: pd.DataFrame, lookback_days: int, entry: float, cost: float) -> BacktestResult:
+def run_dart_backtest(
+    dart: pd.DataFrame,
+    lookback_days: int,
+    entry: float,
+    cost: float,
+    hub_relative: bool = False,
+    hub: str = "HB_HUBAVG",
+) -> BacktestResult:
+    """Absolute: an INC/DEC at the node. Hub-relative: the node leg against an
+    opposite leg at the hub, which strips the market-wide forward premium;
+    the spread pays cost on both legs."""
+    if hub_relative:
+        rel = dart.sub(dart[hub], axis=0).drop(columns=[hub])
+        pos = dart_signal(rel, lookback_days=lookback_days, entry=entry)
+        return settle(pos, rel, cost=2 * cost)
     pos = dart_signal(dart, lookback_days=lookback_days, entry=entry)
     return settle(pos, dart, cost=cost)
 
 
-def sensitivity(dart: pd.DataFrame, grid: list[dict] | None = None) -> pd.DataFrame:
+def sensitivity(dart: pd.DataFrame, grid: list[dict] | None = None, hub_relative: bool = False) -> pd.DataFrame:
     """Stats for the primary parameters plus a small pre-set sensitivity grid."""
     grid = grid or [
         PRIMARY,
@@ -137,6 +151,6 @@ def sensitivity(dart: pd.DataFrame, grid: list[dict] | None = None) -> pd.DataFr
     ]
     rows = []
     for params in grid:
-        res = run_dart_backtest(dart, **params)
+        res = run_dart_backtest(dart, **params, hub_relative=hub_relative)
         rows.append({**params, **res.stats, "primary": params == PRIMARY})
     return pd.DataFrame(rows)

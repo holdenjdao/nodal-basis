@@ -128,6 +128,27 @@ Dated, so later readers know which regime each claim was made in.
     (Amistad, Indian Energy, Hamilton BESS, Appaloosa, Fermi, Russek).
     Reversion yields ~$1.2–2.0/MWh per hour: modest, real, and only
     tradeable in the day-over-day or DA-vs-RT framing (see caveat above).
+- **2026-09-15, 17 months of DA∩RT (Jan 2025 – Jun 2026), 960 nodes.**
+  - *Absolute DART is one fact, not 865.* 865/960 nodes are BH discoveries,
+    all DA-rich; the best DA-cheap t-stat is −1.6. Day-ahead clears above
+    real-time essentially everywhere: the electricity forward premium,
+    a hub-level phenomenon. Absolute node darts are not nodal findings.
+  - *Hub-relative DART isolates the locational part.* Node dart minus hub
+    dart (= DA basis − RT basis) leaves 200 discoveries, 140 DA-rich and
+    60 DA-cheap. DA-rich: the Hill Country / coastal scarcity pockets
+    (Palacios, RHESS2, NF_BRP, Medina) — DA underprices local scarcity.
+    DA-cheap: South Texas coastal wind (Foxtrot, Sparta, Karankawa,
+    Algodón, Nueces) — DA over-discounts congestion relative to real time.
+    The tradeable form is a node leg against a hub leg.
+  - *Persistence is seasonal.* Hub-relative split-half rank correlation
+    0.56; month-to-month mean 0.22 (lag 1), 0.14 (lag 2), 0.08 (lag 3).
+    Within summer it is 0.55–0.68; it goes negative around Dec–Jan and
+    May. The nodal mispricing cross-section persists inside a season and
+    turns over at season boundaries; a signal must be regime-aware.
+  - *Raw vs winsorized disagree at the wild nodes.* RHESS2 hub-relative:
+    +5.4 winsorized, −7.4 raw. A handful of RT spike hours would have
+    destroyed an INC there; the backtest settles on raw darts for exactly
+    that reason.
 - **2026-09-14, one week of DA∩RT.** 113 nodes passed BH on the DART scan;
   split-sample persistence was −0.05. Congestion episodes, not structure.
 
