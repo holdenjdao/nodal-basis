@@ -121,6 +121,13 @@ Dated, so later readers know which regime each claim was made in.
     now run on winsorized spreads, rank by MAD-based robust sigma, and
     require dislocations > $5 in at least 10% of hours both in and out of
     sample — frequency of opportunity, not size of the largest one.
+  - *99 spread pairs survive the full bar* (of 1,883 stationary). Robust
+    sigma $6–12/MWh, half-lives 4–9 h and stable in/out of sample, >$5
+    dislocations in 40–75% of hours. They sit in two physical pockets: the
+    Junction/Olney/Potosi Hill Country pocket and a Del Rio-area cluster
+    (Amistad, Indian Energy, Hamilton BESS, Appaloosa, Fermi, Russek).
+    Reversion yields ~$1.2–2.0/MWh per hour: modest, real, and only
+    tradeable in the day-over-day or DA-vs-RT framing (see caveat above).
 - **2026-09-14, one week of DA∩RT.** 113 nodes passed BH on the DART scan;
   split-sample persistence was −0.05. Congestion episodes, not structure.
 
