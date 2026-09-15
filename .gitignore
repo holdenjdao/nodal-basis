@@ -2,5 +2,6 @@
 __pycache__/
 *.pyc
 data/
+.env
 notebooks/.ipynb_checkpoints/
 .DS_Store

@@ -31,25 +31,40 @@ actually survive.
 
 ```
 src/nodal/       research library
-  data.py        ERCOT SPP download + local parquet store
+  data.py        ERCOT SPP ingestion (MIS rolling window + Public API backfill), parquet store
   basis.py       basis panel construction
-  dart.py        DART bias analysis
+  factors.py     PCA factor structure of the basis panel
+  nodes.py       per-node profiles
+  dart.py        DART bias scan (HAC, BH, persistence)
   pairs.py       cointegration & mean-reversion pairs
-  factors.py     PCA factor structure
-  backtest.py    cost-aware backtests
-scripts/         CLI entry points (data fetch, report build)
+  backtest.py    walk-forward, cost-aware backtests
+scripts/         CLI entry points
+  fetch_data.py  pull recent days from public MIS (no auth)
+  backfill.py    pull history from the ERCOT Public API (needs .env)
+  run_dart.py    DART scan -> results/dart.csv
+docs/DESIGN.md   what a node is, what "inefficiency" means, limitations, roadmap
 data/            local parquet store (not committed)
+results/         committed analysis outputs
 ```
+
+See [docs/DESIGN.md](docs/DESIGN.md) for the conceptual model and methodology.
 
 ## Data
 
 ERCOT day-ahead hourly and real-time 15-minute settlement point prices for all
-settlement points (hubs, load zones, resource nodes), pulled via
-[gridstatus](https://github.com/gridstatus/gridstatus) into a local parquet store.
+~1,100 settlement points (hubs, load zones, resource nodes), via
+[gridstatus](https://github.com/gridstatus/gridstatus).
+
+- **Public MIS** (no account) keeps only a rolling window: ~30 days of day-ahead
+  files, ~7 days of real-time files. `scripts/fetch_data.py` pulls it.
+- **ERCOT Public API** (free account at apiexplorer.ercot.com) serves years of
+  history. Put credentials in `.env` (copy `.env.example`) and run
+  `scripts/backfill.py`.
 
 ## Setup
 
 ```
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
+copy .env.example .env      # then fill in ERCOT API credentials
 ```
