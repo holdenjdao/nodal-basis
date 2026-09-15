@@ -192,7 +192,9 @@ def _rt_month_to_hourly(path: Path, location_types: list[str] | None) -> pd.Seri
     df = pd.read_parquet(path)
     if location_types:
         df = df[df["location_type"].isin(location_types)]
-    df = df.assign(hour=df["interval_start"].dt.floor("h"))
+    # floor in UTC: flooring in local time is ambiguous on the DST fall-back hour
+    hour = df["interval_start"].dt.tz_convert("UTC").dt.floor("h").dt.tz_convert("US/Central")
+    df = df.assign(hour=hour)
     grouped = df.groupby(["hour", "location"])["price"].agg(["mean", "count"])
     return grouped.loc[grouped["count"] >= 4, "mean"]
 
