@@ -57,9 +57,29 @@ def ou_fit(spread: pd.Series) -> dict:
     return {"theta": theta, "half_life": half_life, "mu": mu, "sigma": float(ds.std())}
 
 
-def test_pair(a: pd.Series, b: pd.Series, split: float = 0.7) -> dict:
-    """Stationarity + OU dynamics in-sample, dynamics again out-of-sample."""
-    spread = (a - b).dropna()
+def robust_sigma(x: pd.Series) -> float:
+    """1.4826 * MAD: the std of the typical hour, immune to a single $20,000 spike."""
+    med = x.median()
+    return float(1.4826 * (x - med).abs().median())
+
+
+def test_pair(
+    a: pd.Series,
+    b: pd.Series,
+    split: float = 0.7,
+    winsor: float = 0.01,
+    dislocation: float = 5.0,
+) -> dict:
+    """Stationarity + OU dynamics in-sample, dynamics again out-of-sample.
+
+    Tests run on the winsorized spread: one spike hour otherwise dominates
+    the variance, the AR(1) fit, and any ranking. `dislocation` is the $/MWh
+    departure from the median that counts as a tradeable opportunity; its
+    frequency is what a strategy can actually harvest.
+    """
+    raw = (a - b).dropna()
+    lo, hi = raw.quantile(winsor), raw.quantile(1 - winsor)
+    spread = raw.clip(lo, hi)
     n = len(spread)
     cut = int(n * split)
     ins, oos = spread.iloc[:cut], spread.iloc[cut:]
@@ -68,19 +88,23 @@ def test_pair(a: pd.Series, b: pd.Series, split: float = 0.7) -> dict:
     adf_stat, adf_p, *_ = adfuller(ins.to_numpy(), maxlag=24, autolag=None, result_object=False)
     fit_in = ou_fit(ins)
     fit_out = ou_fit(oos) if len(oos) > 50 else {"half_life": np.nan, "theta": np.nan}
-    std_in = float(ins.std())
+    sig_in = robust_sigma(ins)
+    med_in = float(ins.median())
     return {
         "n": n,
-        "spread_mean": float(ins.mean()),
-        "spread_std": std_in,
+        "spread_median": med_in,
+        "spread_std": float(ins.std()),
+        "robust_sigma": sig_in,
+        "opportunity_share": float(((ins - med_in).abs() > dislocation).mean()),
+        "opportunity_share_oos": float(((oos - med_in).abs() > dislocation).mean()) if len(oos) else np.nan,
         "adf_stat": float(adf_stat),
         "adf_p": float(adf_p),
         "half_life_is": fit_in["half_life"],
         "half_life_oos": fit_out["half_life"],
         "theta_is": fit_in["theta"],
         "theta_oos": fit_out["theta"],
-        # dollars of spread that revert per hour: stationarity is cheap, size x speed is not
-        "reversion_yield": std_in / fit_in["half_life"] if np.isfinite(fit_in["half_life"]) else 0.0,
+        # typical dollars of spread that revert per hour: stationarity is cheap, size x speed is not
+        "reversion_yield": sig_in / fit_in["half_life"] if np.isfinite(fit_in["half_life"]) else 0.0,
     }
 
 

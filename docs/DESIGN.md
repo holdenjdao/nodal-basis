@@ -114,10 +114,13 @@ Dated, so later readers know which regime each claim was made in.
     alone contributes ~$170 of its $274 std. Its 143 hours above +$100
     cluster in Jul 2025 and Nov 2025–Jan 2026: a coastal load pocket whose
     local constraint binds in peak events.
-  - *Stationarity is not a finding.* 98% of neighbour-pair spreads pass ADF;
-    with a $3 minimum spread std and a reversion-yield ranking, ~425 remain
-    on the first window, led by battery-vs-hydro spreads in the Highland
-    Lakes pocket.
+  - *Stationarity is not a finding.* 98–99% of neighbour-pair spreads pass
+    ADF on both the 30-day and 20-month windows. Ranking by std / half-life
+    then put `PALACIOS_RN` pairs on top with spread std of $300+: one spike
+    hour that is gone the next hour scores as "fast reversion". Pair tests
+    now run on winsorized spreads, rank by MAD-based robust sigma, and
+    require dislocations > $5 in at least 10% of hours both in and out of
+    sample — frequency of opportunity, not size of the largest one.
 - **2026-09-14, one week of DA∩RT.** 113 nodes passed BH on the DART scan;
   split-sample persistence was −0.05. Congestion episodes, not structure.
 

@@ -42,14 +42,18 @@ def main() -> None:
               f"IS/OOS half-life rank corr: {rho:.3f}  "
               f"share still reverting at <2x IS speed: {still_fast:.2f}")
 
-    # economic bar: a spread has to move enough to clear costs before speed matters
-    min_std = 3.0
-    econ = disc[(disc["spread_std"] >= min_std) & np.isfinite(disc["half_life_oos"])]
-    print(f"\nstationary pairs with spread std >= ${min_std}/MWh (economically relevant): {len(econ)}")
+    # economic bar: the *typical* hour has to move enough to clear costs, and
+    # dislocations have to happen often enough (in and out of sample) to harvest
+    min_sigma, min_opp = 3.0, 0.10
+    econ = disc[(disc["robust_sigma"] >= min_sigma) & (disc["opportunity_share"] >= min_opp)
+                & (disc["opportunity_share_oos"] >= min_opp) & np.isfinite(disc["half_life_oos"])]
+    print(f"\nstationary pairs with robust sigma >= ${min_sigma} and >= {min_opp:.0%} of hours "
+          f"dislocated > $5 (in and out of sample): {len(econ)}")
 
-    with pd.option_context("display.width", 170, "display.max_columns", 12):
-        print("\n=== top by reversion yield ($ of spread reverting per hour), spread_std >= 3 ===")
-        cols = ["spread_mean", "spread_std", "half_life_is", "half_life_oos", "reversion_yield", "p_bh"]
+    with pd.option_context("display.width", 190, "display.max_columns", 14):
+        print("\n=== top by reversion yield (robust $ of spread reverting per hour) ===")
+        cols = ["spread_median", "robust_sigma", "spread_std", "opportunity_share", "opportunity_share_oos",
+                "half_life_is", "half_life_oos", "reversion_yield"]
         print(econ.sort_values("reversion_yield", ascending=False).head(15)[cols].round(3).to_string())
 
     out = Path(__file__).resolve().parents[1] / "results"
