@@ -188,16 +188,27 @@ def da_panel(location_types: list[str] | None = None) -> pd.DataFrame:
     return df.pivot_table(index="interval_start", columns="location", values="price")
 
 
-def rt_hourly_panel(location_types: list[str] | None = None) -> pd.DataFrame:
-    """RT 15-min prices averaged to the hour, as a wide panel aligned with DA.
-
-    Hours with fewer than four 15-minute intervals are masked: a partial-day
-    fragment averaged into an "hourly" price would silently corrupt DART stats.
-    """
-    df = load_rt()
+def _rt_month_to_hourly(path: Path, location_types: list[str] | None) -> pd.Series:
+    df = pd.read_parquet(path)
     if location_types:
         df = df[df["location_type"].isin(location_types)]
     df = df.assign(hour=df["interval_start"].dt.floor("h"))
     grouped = df.groupby(["hour", "location"])["price"].agg(["mean", "count"])
-    complete = grouped.loc[grouped["count"] >= 4, "mean"]
-    return complete.unstack("location")
+    return grouped.loc[grouped["count"] >= 4, "mean"]
+
+
+def rt_hourly_panel(location_types: list[str] | None = None) -> pd.DataFrame:
+    """RT 15-min prices averaged to the hour, as a wide panel aligned with DA.
+
+    Aggregated one month file at a time (a year of 15-min nodal data is ~40M
+    rows; hourly is a quarter of that). Hours with fewer than four 15-minute
+    intervals are masked: a partial-day fragment averaged into an "hourly"
+    price would silently corrupt DART stats. An hour straddling a month file
+    boundary cannot occur because files split on interval_start's month.
+    """
+    paths = sorted((DATA_DIR / "rt").glob("*.parquet"))
+    if not paths:
+        raise FileNotFoundError("no local rt data; run scripts/fetch_data.py")
+    hourly = pd.concat(_rt_month_to_hourly(p, location_types) for p in paths)
+    hourly = hourly[~hourly.index.duplicated(keep="last")]
+    return hourly.unstack("location")
